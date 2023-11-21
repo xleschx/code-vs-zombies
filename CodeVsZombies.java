@@ -1,6 +1,6 @@
-import java.util.*;
-import java.io.*;
-import java.math.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
 
 class Player {
 
@@ -12,6 +12,15 @@ class Player {
 
     public static double calculateDistance(int x1, int y1, int x2, int y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        Action action = new Action();
+        while (true) {
+            action.readSituation(scanner);
+            action.executeStrategicAction();
+        }
     }
 
     static class Action {
@@ -93,19 +102,13 @@ class Player {
         }
 
         private boolean canAshSaveHuman(int[] zombie, int[] human) {
-            double distanceToHuman = calculateDistance(zombie[0], zombie[1], human[0], human[1]);
-            double turnsForZombieToReachHuman = distanceToHuman / ZOMBIE_SPEED;
-            double turnsForAshToReachZombie = calculateDistance(ashX, ashY, zombie[0], zombie[1]) / ASH_SPEED;
-            return turnsForAshToReachZombie < turnsForZombieToReachHuman + (ASH_SPEED / ZOMBIE_SPEED);
-        }
-    }
+            double distanceZombieToHuman = calculateDistance(zombie[0], zombie[1], human[0], human[1]);
+            double distanceAshToZombie = calculateDistance(ashX, ashY, zombie[0], zombie[1]);
+            double turnsForZombieToReachHuman = distanceZombieToHuman / ZOMBIE_SPEED;
+            double turnsForAshToAttack = Math.max(0, (distanceAshToZombie - ASH_ATTACK_DISTANCE) / ASH_SPEED);
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        Action action = new Action();
-        while (true) {
-            action.readSituation(scanner);
-            action.executeStrategicAction();
+            return turnsForAshToAttack <= turnsForZombieToReachHuman;
         }
+
     }
 }
