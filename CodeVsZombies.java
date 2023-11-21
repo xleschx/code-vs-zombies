@@ -51,42 +51,52 @@ class Player {
         }
 
         public void executeStrategicAction() {
-            int[] targetZombie = findZombieOptimallyPositioned();
+            int[] targetZombie = findZombieClosestToAnyHuman();
             if (targetZombie != null) {
                 System.out.println(targetZombie[0] + " " + targetZombie[1]);
             } else {
-                System.out.println(ashX + " " + ashY);
+                System.out.println(ashX + " " + ashY); // Stay in place if no zombie found
             }
         }
 
-        private int[] findZombieOptimallyPositioned() {
-            double closestDistance = Double.MAX_VALUE;
-            int[] optimallyPositionedZombie = null;
-            for (Map.Entry<Integer, int[]> zombieEntry : zombies.entrySet()) {
-                int[] zombie = zombieEntry.getValue();
-                int[] closestHuman = findClosestHumanToZombie(zombie);
-                double distanceToHuman = calculateDistance(zombie[0], zombie[1], closestHuman[0], closestHuman[1]);
-                double distanceToAsh = calculateDistance(ashX, ashY, zombie[0], zombie[1]);
-                double combinedDistance = distanceToHuman + distanceToAsh;
-                if (combinedDistance < closestDistance) {
-                    closestDistance = combinedDistance;
-                    optimallyPositionedZombie = zombie;
+        private int[] findZombieClosestToAnyHuman() {
+            int[] bestTargetZombie = null;
+            double bestScore = Double.MAX_VALUE;
+
+            for (int[] human : humans.values()) {
+                int[] closestZombie = findClosestZombieToHuman(human);
+                if (closestZombie != null) {
+                    double distanceToHuman = calculateDistance(closestZombie[0], closestZombie[1], human[0], human[1]);
+                    double distanceToAsh = calculateDistance(ashX, ashY, closestZombie[0], closestZombie[1]);
+                    double score = distanceToHuman + distanceToAsh;
+
+                    if (canAshSaveHuman(closestZombie, human) && score < bestScore) {
+                        bestScore = score;
+                        bestTargetZombie = closestZombie;
+                    }
                 }
             }
-            return optimallyPositionedZombie;
+            return bestTargetZombie;
         }
 
-        private int[] findClosestHumanToZombie(int[] zombie) {
+        private int[] findClosestZombieToHuman(int[] human) {
             double minDistance = Double.MAX_VALUE;
-            int[] closestHuman = null;
-            for (int[] human : humans.values()) {
-                double distance = calculateDistance(zombie[0], zombie[1], human[0], human[1]);
+            int[] closestZombie = null;
+            for (int[] zombie : zombies.values()) {
+                double distance = calculateDistance(human[0], human[1], zombie[0], zombie[1]);
                 if (distance < minDistance) {
                     minDistance = distance;
-                    closestHuman = human;
+                    closestZombie = zombie;
                 }
             }
-            return closestHuman;
+            return closestZombie;
+        }
+
+        private boolean canAshSaveHuman(int[] zombie, int[] human) {
+            double distanceToHuman = calculateDistance(zombie[0], zombie[1], human[0], human[1]);
+            double turnsForZombieToReachHuman = distanceToHuman / ZOMBIE_SPEED;
+            double turnsForAshToReachZombie = calculateDistance(ashX, ashY, zombie[0], zombie[1]) / ASH_SPEED;
+            return turnsForAshToReachZombie < turnsForZombieToReachHuman + (ASH_SPEED / ZOMBIE_SPEED);
         }
     }
 
