@@ -64,7 +64,7 @@ class Player {
             if (targetZombie != null) {
                 System.out.println(targetZombie[0] + " " + targetZombie[1]);
             } else {
-                System.out.println(ashX + " " + ashY); // Stay in place if no zombie found
+                System.out.println(ashX + " " + ashY);
             }
         }
 
